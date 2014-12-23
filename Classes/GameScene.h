@@ -6,7 +6,11 @@
 class GameScreen : public cocos2d::Layer {
 
     cocos2d::Sprite* backgroundSpriteArray[2];
+    cocos2d::Sprite* playerSprite;
     std::vector<cocos2d::Sprite*> asteroids;
+
+    bool isTouching;
+    float touchPosition;
 
 public:
     // there's no 'id' in cpp, so we recommend returning the class instance
@@ -24,6 +28,11 @@ public:
     void GoToGameOverScene(Ref* pSender);
     void update(float dt);
     void spawnAsteroid(float dt);
+
+    bool onTouchBegan(cocos2d::Touch* touch, cocos2d::Event* event);
+    void onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event);
+    void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
+    void onTouchCancelled(cocos2d::Touch* touch, cocos2d::Event* event);
 };
 
 #endif // __GAME_SCENE_H__
