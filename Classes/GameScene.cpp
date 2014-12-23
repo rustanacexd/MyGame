@@ -7,10 +7,11 @@ USING_NS_CC;
 Scene* GameScreen::createScene()
 {
     // 'scene' is an autorelease object
-    auto scene = Scene::create();
+    auto scene = Scene::createWithPhysics();
 
     // 'layer' is an autorelease object
     auto layer = GameScreen::create();
+    layer->setPhysicsWorld(scene->getPhysicsWorld());
 
     // add layer as a child to scene
     scene->addChild(layer);
@@ -55,14 +56,22 @@ bool GameScreen::init()
     this->schedule(schedule_selector(GameScreen::spawnAsteroid), 1.0);
 
     playerSprite = Sprite::create("GameScreen/Space_Pod.png");
+
+    auto body = PhysicsBody::createCircle(playerSprite->getContentSize().width / 2);
+    body->setContactTestBitmask(true);
+    body->setDynamic(true);
+
     playerSprite->setPosition(Point(
         (visibleSize.width / 2),
         (pauseItem->getPositionY() - (pauseItem->getContentSize().height / 2) - (playerSprite->getContentSize().height / 2))));
+
+    playerSprite->setPhysicsBody(body);
+
     this->addChild(playerSprite, -1);
 
     auto listener = EventListenerTouchOneByOne::create();
-    listener->setSwallowTouches(true);
 
+    listener->setSwallowTouches(true);
     listener->onTouchBegan = CC_CALLBACK_2(GameScreen::onTouchBegan, this);
     listener->onTouchMoved = CC_CALLBACK_2(GameScreen::onTouchMoved, this);
     listener->onTouchEnded = CC_CALLBACK_2(GameScreen::onTouchEnded, this);
@@ -72,6 +81,11 @@ bool GameScreen::init()
 
     this->isTouching = false;
     this->touchPosition = 0;
+
+    auto contactListener = EventListenerPhysicsContact::create();
+    contactListener->onContactBegin = CC_CALLBACK_1(GameScreen::onContactBegin, this);
+
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
 
     return true;
 }
@@ -133,9 +147,9 @@ void GameScreen::update(float dt)
         else {
             // move the space pod to the right
             playerSprite->setPositionX(playerSprite->getPositionX() + (0.50 * visibleSize.width * dt));
-             //check to prevent the space pod from going off the screen (right side)
+            //check to prevent the space pod from going off the screen (right side)
             if (playerSprite->getPositionX() >= visibleSize.width - (playerSprite->getContentSize().width / 2)) {
-               playerSprite->setPositionX(visibleSize.width  - (playerSprite->getContentSize().width / 2));
+                playerSprite->setPositionX(visibleSize.width - (playerSprite->getContentSize().width / 2));
             }
         }
     }
@@ -159,6 +173,11 @@ void GameScreen::spawnAsteroid(float dt)
 
     asteroids.push_back(tempAsteroid);
 
+    auto body = PhysicsBody::createCircle(asteroids[asteroids.size() - 1]->getContentSize().width / 2);
+    body->setContactTestBitmask(true);
+    body->setDynamic(true);
+    asteroids[asteroids.size() - 1]->setPhysicsBody(body);
+    
     this->addChild(asteroids[asteroids.size() - 1], -1);
 }
 
@@ -180,4 +199,9 @@ void GameScreen::onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event)
 void GameScreen::onTouchCancelled(cocos2d::Touch* touch, cocos2d::Event* event)
 {
     onTouchEnded(touch, event);
+}
+
+bool GameScreen::onContactBegin(cocos2d::PhysicsContact& contact){
+    GoToGameOverScene(this);
+    return true;
 }

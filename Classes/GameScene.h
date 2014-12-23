@@ -7,6 +7,8 @@ class GameScreen : public cocos2d::Layer {
 
     cocos2d::Sprite* backgroundSpriteArray[2];
     cocos2d::Sprite* playerSprite;
+    cocos2d::PhysicsWorld* mWorld;
+
     std::vector<cocos2d::Sprite*> asteroids;
 
     bool isTouching;
@@ -33,6 +35,17 @@ public:
     void onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event);
     void onTouchEnded(cocos2d::Touch* touch, cocos2d::Event* event);
     void onTouchCancelled(cocos2d::Touch* touch, cocos2d::Event* event);
+
+    //Physics
+
+    void setPhysicsWorld(cocos2d::PhysicsWorld* world)
+    {
+        mWorld = world;
+        mWorld->setGravity(cocos2d::Vect(0,0));
+        
+    }
+    
+    bool onContactBegin(cocos2d::PhysicsContact& contact);
 };
 
 #endif // __GAME_SCENE_H__
